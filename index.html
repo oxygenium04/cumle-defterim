@@ -577,7 +577,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, signInWithRedirect, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -694,14 +694,14 @@
         }
 
         // --- Auth Flow ---
-        googleLoginBtn.addEventListener('click', async () => {
+        googleLoginBtn.addEventListener('click', () => {
             loginLoading.classList.remove('hidden');
             googleLoginBtn.disabled = true;
             try {
-                await signInWithPopup(auth, provider);
+                signInWithRedirect(auth, provider);
             } catch (error) {
                 console.error(error);
-                showToast('Giriş yapılamadı: ' + error.message, 'error');
+                showToast('Giriş başlatılamadı: ' + error.message, 'error');
                 loginLoading.classList.add('hidden');
                 googleLoginBtn.disabled = false;
             }
