@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Günlük Cümle Defterim</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --text: #0f172a;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        [data-theme="dark"] {
+            --primary: #60a5fa;
+            --primary-hover: #3b82f6;
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --text: #f8fafc;
+            --text-secondary: #94a3b8;
+            --border: #334155;
+            --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            transition: background-color 0.3s, color 0.3s;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background-color: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .header-title h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .header-title span {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        nav {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .nav-btn:hover {
+            background-color: var(--border);
+            color: var(--text);
+        }
+
+        .nav-btn.active {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            cursor: pointer;
+            color: var(--text);
+        }
+
+        main {
+            flex: 1;
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .view {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Forms & Inputs */
+        .card {
+            background-color: var(--surface);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border);
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        input[type="text"], input[type="date"], select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: inherit;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus, input[type="date"]:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+        
+        .btn-secondary {
+            background-color: var(--bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+        
+        .btn-secondary:hover {
+            background-color: var(--border);
+        }
+        
+        .btn-success { background-color: var(--success); color: white; }
+        .btn-danger { background-color: var(--danger); color: white; }
+        .btn-warning { background-color: var(--warning); color: white; }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .flex-gap {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        /* Flashcards */
+        .flashcards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+
+        .flashcard {
+            background-color: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            box-shadow: var(--card-shadow);
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .flashcard:hover {
+            transform: translateY(-2px);
+        }
+        
+        .flashcard-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .flashcard-tr {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .flashcard-en {
+            color: var(--primary);
+            font-weight: 500;
+            display: none;
+        }
+        
+        .flashcard.revealed .flashcard-en {
+            display: block;
+        }
+
+        .star-btn {
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            cursor: pointer;
+            color: var(--warning);
+            padding: 0;
+            opacity: 0.5;
+        }
+        .star-btn.active {
+            opacity: 1;
+        }
+        
+        .status-dot {
+            height: 10px;
+            width: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .status-learned { background-color: var(--success); }
+        .status-learning { background-color: var(--warning); }
+        .status-struggling { background-color: var(--danger); }
+
+        /* Quiz */
+        .quiz-container {
+            text-align: center;
+        }
+        .quiz-card {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 2rem 0;
+        }
+        
+        .quiz-feedback {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            display: none;
+        }
+        .quiz-feedback.correct {
+            display: block;
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+        .quiz-feedback.incorrect {
+            display: block;
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+        
+        .quiz-actions {
+            margin-top: 1.5rem;
+            display: none;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        .stat-card {
+            text-align: center;
+            padding: 1.5rem;
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        /* Toasts */
+        .toast-container {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            z-index: 50;
+        }
+        .toast {
+            background-color: var(--surface);
+            color: var(--text);
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            border-left: 4px solid var(--primary);
+            animation: slideIn 0.3s ease-in-out, fadeOut 0.3s ease-in-out 2.7s forwards;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; display: none; }
+        }
+
+        /* Utilities */
+        .hidden { display: none !important; }
+        .text-center { text-align: center; }
+        .mt-4 { margin-top: 1rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        
+        @media (max-width: 640px) {
+            header { padding: 1rem; flex-wrap: wrap; gap: 1rem; }
+            nav { width: 100%; overflow-x: auto; padding-bottom: 0.5rem; }
+            .nav-btn { white-space: nowrap; }
+            main { padding: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-title">
+            <h1>📝 Günlük Cümle Defterim</h1>
+            <span>🇹🇷 → 🇬🇧</span>
+        </div>
+        <nav>
+            <button class="nav-btn active" data-target="view-add">Cümle Ekle</button>
+            <button class="nav-btn" data-target="view-quiz">Quiz</button>
+            <button class="nav-btn" data-target="view-cards">Kartlarım</button>
+            <button class="nav-btn" data-target="view-stats">İstatistik</button>
+        </nav>
+        <button class="theme-toggle" id="themeToggle">🌙</button>
+    </header>
+
+    <main>
+        <!-- View: Add Sentence -->
+        <div id="view-add" class="view active">
+            <div class="card">
+                <h2>Yeni Cümle Ekle</h2>
+                <p class="text-secondary mb-4" style="color: var(--text-secondary); font-size: 0.875rem;">Türkçe bir cümle yazın, İngilizceye çevirelim.</p>
+                
+                <div class="form-group">
+                    <label for="trInput">Türkçe Cümle</label>
+                    <input type="text" id="trInput" placeholder="Örn: Bugün hava çok güzel." autocomplete="off">
+                </div>
+                
+                <button id="translateBtn" class="btn btn-primary mb-4">Çevir 🔄</button>
+                
+                <div id="translationResult" class="hidden">
+                    <div class="form-group">
+                        <label for="enInput">İngilizce Çeviri (Düzenleyebilirsiniz)</label>
+                        <input type="text" id="enInput" autocomplete="off">
+                    </div>
+                    <button id="saveSentenceBtn" class="btn btn-success">Kaydet ✅</button>
+                    <button id="cancelTranslationBtn" class="btn btn-secondary">İptal</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- View: Cards -->
+        <div id="view-cards" class="view">
+            <div class="card mb-4">
+                <div class="flex-between flex-wrap" style="gap: 1rem;">
+                    <div class="form-group" style="margin: 0; flex: 1; min-width: 200px;">
+                        <input type="text" id="searchInput" placeholder="🔍 Cümlelerde ara (TR veya EN)...">
+                    </div>
+                    <div class="flex-gap">
+                        <button id="filterFavBtn" class="btn btn-secondary">⭐ Favoriler</button>
+                        <button id="exportBtn" class="btn btn-secondary">💾 Dışa Aktar</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="cardsList" class="flashcards-grid">
+                <!-- Cards injected here -->
+            </div>
+            <div id="emptyCardsMsg" class="text-center text-secondary hidden mt-4">
+                Henüz cümle eklenmemiş veya aramaya uygun sonuç yok.
+            </div>
+        </div>
+
+        <!-- View: Quiz -->
+        <div id="view-quiz" class="view">
+            <div id="quizSetup" class="card">
+                <h2>Quiz Modu</h2>
+                <p class="mb-4 text-secondary">Öğrendiklerinizi test edin.</p>
+                
+                <div class="form-group">
+                    <label>Filtre</label>
+                    <select id="quizFilter">
+                        <option value="all">Tüm Cümleler</option>
+                        <option value="favorites">Sadece Favoriler</option>
+                        <option value="learning">Öğrenilmeyenler (Tekrar Gerekenler)</option>
+                    </select>
+                </div>
+                <button id="startQuizBtn" class="btn btn-primary">Quiz'e Başla 🚀</button>
+            </div>
+
+            <div id="quizActive" class="card hidden quiz-container">
+                <div class="flex-between mb-4">
+                    <span id="quizProgress" class="text-secondary">Soru 1 / 10</span>
+                    <span id="quizScore" class="text-secondary">Puan: 0</span>
+                </div>
+                
+                <div class="quiz-card" id="quizTrSentence">
+                    <!-- Turkish sentence -->
+                </div>
+                
+                <div class="form-group text-left" id="quizInputGroup">
+                    <input type="text" id="quizAnswerInput" placeholder="İngilizce çevirisini yazın..." autocomplete="off">
+                </div>
+                
+                <button id="checkAnswerBtn" class="btn btn-primary">Kontrol Et</button>
+                
+                <div id="quizFeedback" class="quiz-feedback">
+                    <!-- Feedback injected here -->
+                </div>
+                
+                <div id="quizActions" class="quiz-actions">
+                    <button id="quizLearnedBtn" class="btn btn-success">✅ Öğrendim</button>
+                    <button id="quizRepeatBtn" class="btn btn-warning">🔄 Tekrar Et</button>
+                    <button id="quizNextBtn" class="btn btn-primary hidden">Sonraki ➡️</button>
+                </div>
+            </div>
+            
+            <div id="quizFinished" class="card hidden text-center">
+                <h2>Quiz Tamamlandı! 🎉</h2>
+                <p class="stat-value mt-4" id="finalQuizScore">0 / 0</p>
+                <p class="mb-4">Doğru cevap sayısı</p>
+                <button id="restartQuizBtn" class="btn btn-primary">Yeni Quiz</button>
+            </div>
+        </div>
+
+        <!-- View: Stats -->
+        <div id="view-stats" class="view">
+            <div class="card stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="statTotal">0</div>
+                    <div class="stat-label">Toplam Cümle</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statLearned">0</div>
+                    <div class="stat-label">Öğrenilen</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statLearning">0</div>
+                    <div class="stat-label">Öğrenilmeyi Bekleyen</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statStreak">0</div>
+                    <div class="stat-label">Günlük Seri 🔥</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        // --- State Management ---
+        let sentences = JSON.parse(localStorage.getItem('dilOgrenme_sentences')) || [];
+        let streakData = JSON.parse(localStorage.getItem('dilOgrenme_streak')) || { lastDate: null, streak: 0 };
+        
+        let filterOnlyFav = false;
+        let searchQuery = "";
+        
+        // Quiz State
+        let quizQueue = [];
+        let currentQuizIndex = 0;
+        let quizScore = 0;
+        let currentQuizSentence = null;
+
+        // --- DOM Elements ---
+        const themeToggle = document.getElementById('themeToggle');
+        const navBtns = document.querySelectorAll('.nav-btn');
+        const views = document.querySelectorAll('.view');
+        
+        // Add Elements
+        const trInput = document.getElementById('trInput');
+        const translateBtn = document.getElementById('translateBtn');
+        const translationResult = document.getElementById('translationResult');
+        const enInput = document.getElementById('enInput');
+        const saveSentenceBtn = document.getElementById('saveSentenceBtn');
+        const cancelTranslationBtn = document.getElementById('cancelTranslationBtn');
+        
+        // Cards Elements
+        const cardsList = document.getElementById('cardsList');
+        const emptyCardsMsg = document.getElementById('emptyCardsMsg');
+        const searchInput = document.getElementById('searchInput');
+        const filterFavBtn = document.getElementById('filterFavBtn');
+        const exportBtn = document.getElementById('exportBtn');
+        
+        // Stats Elements
+        const statTotal = document.getElementById('statTotal');
+        const statLearned = document.getElementById('statLearned');
+        const statLearning = document.getElementById('statLearning');
+        const statStreak = document.getElementById('statStreak');
+
+        // --- Utils ---
+        const generateId = () => Math.random().toString(36).substr(2, 9);
+        const getToday = () => new Date().toISOString().split('T')[0];
+        
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            if (type === 'error') toast.style.borderLeftColor = 'var(--danger)';
+            if (type === 'success') toast.style.borderLeftColor = 'var(--success)';
+            toast.textContent = message;
+            document.getElementById('toastContainer').appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        function saveData() {
+            localStorage.setItem('dilOgrenme_sentences', JSON.stringify(sentences));
+            localStorage.setItem('dilOgrenme_streak', JSON.stringify(streakData));
+            updateStats();
+        }
+
+        function updateStreak() {
+            const today = getToday();
+            if (streakData.lastDate !== today) {
+                if (streakData.lastDate === null) {
+                    streakData.streak = 1;
+                } else {
+                    const lastDate = new Date(streakData.lastDate);
+                    const currDate = new Date(today);
+                    const diffTime = Math.abs(currDate - lastDate);
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+                    
+                    if (diffDays === 1) {
+                        streakData.streak++;
+                    } else if (diffDays > 1) {
+                        streakData.streak = 1;
+                    }
+                }
+                streakData.lastDate = today;
+                saveData();
+            }
+        }
+
+        // --- Theme ---
+        function initTheme() {
+            const savedTheme = localStorage.getItem('dilOgrenme_theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            themeToggle.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+        }
+
+        themeToggle.addEventListener('click', () => {
+            const curr = document.documentElement.getAttribute('data-theme');
+            const next = curr === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('dilOgrenme_theme', next);
+            themeToggle.textContent = next === 'dark' ? '☀️' : '🌙';
+        });
+
+        // --- Navigation ---
+        navBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                navBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                const target = btn.getAttribute('data-target');
+                views.forEach(v => {
+                    v.classList.remove('active');
+                    if (v.id === target) v.classList.add('active');
+                });
+
+                if (target === 'view-cards') renderCards();
+                if (target === 'view-stats') updateStats();
+            });
+        });
+
+        // --- 1. Add Sentence ---
+        translateBtn.addEventListener('click', async () => {
+            const text = trInput.value.trim();
+            if (!text) {
+                showToast('Lütfen çevrilecek bir cümle yazın.', 'error');
+                return;
+            }
+            
+            translateBtn.disabled = true;
+            translateBtn.textContent = 'Çevriliyor...';
+            
+            try {
+                const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=tr|en`);
+                const data = await res.json();
+                if (data.responseData && data.responseData.translatedText) {
+                    enInput.value = data.responseData.translatedText;
+                    translationResult.classList.remove('hidden');
+                } else {
+                    throw new Error('Çeviri alınamadı');
+                }
+            } catch (err) {
+                showToast('Çeviri sırasında bir hata oluştu. Lütfen manuel girin.', 'error');
+                enInput.value = '';
+                translationResult.classList.remove('hidden');
+            } finally {
+                translateBtn.disabled = false;
+                translateBtn.textContent = 'Çevir 🔄';
+            }
+        });
+
+        cancelTranslationBtn.addEventListener('click', () => {
+            translationResult.classList.add('hidden');
+            trInput.value = '';
+            enInput.value = '';
+        });
+
+        saveSentenceBtn.addEventListener('click', () => {
+            const tr = trInput.value.trim();
+            const en = enInput.value.trim();
+            
+            if (!tr || !en) {
+                showToast('Lütfen her iki dili de doldurun.', 'error');
+                return;
+            }
+
+            const newSentence = {
+                id: generateId(),
+                turkish: tr,
+                english: en,
+                dateAdded: getToday(),
+                favorite: false,
+                learned: false,
+                timesCorrect: 0,
+                timesWrong: 0,
+                lastReviewed: null
+            };
+
+            sentences.push(newSentence);
+            updateStreak();
+            saveData();
+            
+            showToast('Cümle başarıyla kaydedildi!', 'success');
+            
+            translationResult.classList.add('hidden');
+            trInput.value = '';
+            enInput.value = '';
+        });
+
+        // --- 3. Cards & 4. Favorites & 6. Search ---
+        function renderCards() {
+            cardsList.innerHTML = '';
+            
+            let filtered = sentences;
+            
+            if (filterOnlyFav) {
+                filtered = filtered.filter(s => s.favorite);
+            }
+            
+            if (searchQuery) {
+                const q = searchQuery.toLowerCase();
+                filtered = filtered.filter(s => 
+                    s.turkish.toLowerCase().includes(q) || 
+                    s.english.toLowerCase().includes(q)
+                );
+            }
+
+            // Sort by newest first
+            filtered.sort((a, b) => new Date(b.dateAdded) - new Date(a.dateAdded));
+
+            if (filtered.length === 0) {
+                emptyCardsMsg.classList.remove('hidden');
+            } else {
+                emptyCardsMsg.classList.add('hidden');
+                
+                filtered.forEach(s => {
+                    const el = document.createElement('div');
+                    el.className = 'flashcard';
+                    
+                    // calculate status
+                    let statusClass = 'status-learning';
+                    if (s.learned) statusClass = 'status-learned';
+                    else if (s.timesWrong > s.timesCorrect && s.timesWrong > 0) statusClass = 'status-struggling';
+
+                    el.innerHTML = `
+                        <div class="flashcard-header">
+                            <span title="${s.learned ? 'Öğrenildi' : 'Öğreniliyor'}"><span class="status-dot ${statusClass}"></span> ${s.dateAdded}</span>
+                            <button class="star-btn ${s.favorite ? 'active' : ''}" data-id="${s.id}">⭐</button>
+                        </div>
+                        <div class="flashcard-tr">${s.turkish}</div>
+                        <div class="flashcard-en">${s.english}</div>
+                    `;
+                    
+                    // Flip card
+                    el.addEventListener('click', (e) => {
+                        if (e.target.classList.contains('star-btn')) return;
+                        el.classList.toggle('revealed');
+                    });
+                    
+                    // Star button
+                    const starBtn = el.querySelector('.star-btn');
+                    starBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        s.favorite = !s.favorite;
+                        saveData();
+                        renderCards();
+                    });
+
+                    cardsList.appendChild(el);
+                });
+            }
+        }
+
+        filterFavBtn.addEventListener('click', () => {
+            filterOnlyFav = !filterOnlyFav;
+            filterFavBtn.classList.toggle('btn-primary');
+            filterFavBtn.classList.toggle('btn-secondary');
+            renderCards();
+        });
+
+        // Debounce search
+        let searchTimeout;
+        searchInput.addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                searchQuery = e.target.value.trim();
+                renderCards();
+            }, 300);
+        });
+
+        // --- 7. Export ---
+        exportBtn.addEventListener('click', () => {
+            if (sentences.length === 0) {
+                showToast('Dışa aktarılacak cümle yok.', 'error');
+                return;
+            }
+            const dataStr = JSON.stringify(sentences, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `cumlelerim_${getToday()}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('JSON olarak indirildi.', 'success');
+        });
+
+        // --- 8. Stats Dashboard ---
+        function updateStats() {
+            statTotal.textContent = sentences.length;
+            const learned = sentences.filter(s => s.learned).length;
+            statLearned.textContent = learned;
+            statLearning.textContent = sentences.length - learned;
+            statStreak.textContent = streakData.streak;
+        }
+
+        // --- 2. & 5. Quiz Mode (Spaced Repetition) ---
+        const startQuizBtn = document.getElementById('startQuizBtn');
+        const quizSetup = document.getElementById('quizSetup');
+        const quizActive = document.getElementById('quizActive');
+        const quizFinished = document.getElementById('quizFinished');
+        
+        const quizFilter = document.getElementById('quizFilter');
+        const quizTrSentence = document.getElementById('quizTrSentence');
+        const quizAnswerInput = document.getElementById('quizAnswerInput');
+        const checkAnswerBtn = document.getElementById('checkAnswerBtn');
+        const quizFeedback = document.getElementById('quizFeedback');
+        const quizActions = document.getElementById('quizActions');
+        
+        const quizLearnedBtn = document.getElementById('quizLearnedBtn');
+        const quizRepeatBtn = document.getElementById('quizRepeatBtn');
+        const quizNextBtn = document.getElementById('quizNextBtn');
+
+        startQuizBtn.addEventListener('click', () => {
+            let pool = sentences;
+            const filter = quizFilter.value;
+            
+            if (filter === 'favorites') pool = pool.filter(s => s.favorite);
+            if (filter === 'learning') pool = pool.filter(s => !s.learned);
+            
+            if (pool.length === 0) {
+                showToast('Bu filtreye uygun cümle bulunamadı.', 'error');
+                return;
+            }
+
+            // Spaced Repetition sorting logic
+            pool.sort((a, b) => {
+                // Priority to unlearned and never reviewed
+                if (!a.lastReviewed) return -1;
+                if (!b.lastReviewed) return 1;
+                
+                // Calculate success ratio: timesCorrect / total
+                const ratioA = (a.timesCorrect + a.timesWrong) === 0 ? 0 : a.timesCorrect / (a.timesCorrect + a.timesWrong);
+                const ratioB = (b.timesCorrect + b.timesWrong) === 0 ? 0 : b.timesCorrect / (b.timesCorrect + b.timesWrong);
+                
+                return ratioA - ratioB; // Lower ratio first (struggling)
+            });
+
+            // Take up to 10 for a session
+            quizQueue = pool.slice(0, 10);
+            currentQuizIndex = 0;
+            quizScore = 0;
+            
+            quizSetup.classList.add('hidden');
+            quizActive.classList.remove('hidden');
+            quizFinished.classList.add('hidden');
+            
+            loadQuizQuestion();
+        });
+
+        function loadQuizQuestion() {
+            currentQuizSentence = quizQueue[currentQuizIndex];
+            
+            document.getElementById('quizProgress').textContent = `Soru ${currentQuizIndex + 1} / ${quizQueue.length}`;
+            document.getElementById('quizScore').textContent = `Puan: ${quizScore}`;
+            
+            quizTrSentence.textContent = currentQuizSentence.turkish;
+            quizAnswerInput.value = '';
+            quizAnswerInput.disabled = false;
+            
+            checkAnswerBtn.classList.remove('hidden');
+            quizActions.style.display = 'none';
+            quizFeedback.className = 'quiz-feedback'; // reset
+            quizNextBtn.classList.add('hidden');
+            quizLearnedBtn.classList.remove('hidden');
+            quizRepeatBtn.classList.remove('hidden');
+            
+            quizAnswerInput.focus();
+        }
+
+        checkAnswerBtn.addEventListener('click', () => {
+            const userAnswer = quizAnswerInput.value.trim().toLowerCase();
+            const correctAnswer = currentQuizSentence.english.trim().toLowerCase();
+            
+            if (!userAnswer) {
+                showToast('Lütfen bir cevap yazın.', 'error');
+                return;
+            }
+
+            quizAnswerInput.disabled = true;
+            checkAnswerBtn.classList.add('hidden');
+            quizActions.style.display = 'flex';
+            
+            currentQuizSentence.lastReviewed = getToday();
+
+            // Simple equivalence check (could be improved with regex to strip punctuation, but this is basic)
+            // Strip basic punctuation for fairer comparison
+            const cleanUser = userAnswer.replace(/[.,!?]/g, '');
+            const cleanCorrect = correctAnswer.replace(/[.,!?]/g, '');
+
+            if (cleanUser === cleanCorrect) {
+                quizScore++;
+                currentQuizSentence.timesCorrect++;
+                quizFeedback.textContent = '✅ Doğru!';
+                quizFeedback.className = 'quiz-feedback correct';
+                quizNextBtn.classList.remove('hidden'); // they can just skip to next
+            } else {
+                currentQuizSentence.timesWrong++;
+                quizFeedback.innerHTML = `❌ Yanlış. Doğrusu:<br><strong>${currentQuizSentence.english}</strong>`;
+                quizFeedback.className = 'quiz-feedback incorrect';
+            }
+            saveData();
+        });
+        
+        quizAnswerInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !checkAnswerBtn.classList.contains('hidden')) {
+                checkAnswerBtn.click();
+            }
+        });
+
+        quizLearnedBtn.addEventListener('click', () => {
+            currentQuizSentence.learned = true;
+            saveData();
+            showToast('Öğrenildi olarak işaretlendi', 'success');
+            goToNextQuizQuestion();
+        });
+
+        quizRepeatBtn.addEventListener('click', () => {
+            currentQuizSentence.learned = false;
+            saveData();
+            showToast('Tekrar edilecekler listesine alındı', 'info');
+            goToNextQuizQuestion();
+        });
+        
+        quizNextBtn.addEventListener('click', goToNextQuizQuestion);
+
+        function goToNextQuizQuestion() {
+            currentQuizIndex++;
+            if (currentQuizIndex < quizQueue.length) {
+                loadQuizQuestion();
+            } else {
+                quizActive.classList.add('hidden');
+                quizFinished.classList.remove('hidden');
+                document.getElementById('finalQuizScore').textContent = `${quizScore} / ${quizQueue.length}`;
+            }
+        }
+
+        document.getElementById('restartQuizBtn').addEventListener('click', () => {
+            quizFinished.classList.add('hidden');
+            quizSetup.classList.remove('hidden');
+        });
+
+        // --- Init ---
+        initTheme();
+        updateStats();
+
+    </script>
+</body>
+</html>
