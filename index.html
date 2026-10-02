@@ -387,12 +387,19 @@
         
         /* Login Screen */
         #login-screen {
-            display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
             padding: 2rem;
+        }
+
+        #login-screen.active {
+            display: flex;
+        }
+
+        #login-screen:not(.active) {
+            display: none !important;
         }
 
         #login-screen h1 {
