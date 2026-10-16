@@ -462,19 +462,30 @@
             <div id="view-add" class="view active">
                 <div class="card">
                     <h2>Yeni Cümle Ekle</h2>
-                    <p class="text-secondary mb-4" style="color: var(--text-secondary); font-size: 0.875rem;">Türkçe bir cümle yazın, İngilizceye çevirelim.</p>
+                    <p class="text-secondary mb-4" style="color: var(--text-secondary); font-size: 0.875rem;" id="addDescription">Türkçe veya İngilizce bir cümle yazın, çevirelim.</p>
                     
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <button id="directionToggle" class="btn btn-secondary" style="width: 100%; font-size: 1.1rem; padding: 0.75rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                            <span id="dirSourceFlag">🇹🇷</span>
+                            <span id="dirSourceLang">Türkçe</span>
+                            <span>→</span>
+                            <span id="dirTargetFlag">🇬🇧</span>
+                            <span id="dirTargetLang">İngilizce</span>
+                            <span style="margin-left: 0.5rem; font-size: 0.8rem; opacity: 0.6;">🔄 Yön değiştir</span>
+                        </button>
+                    </div>
+
                     <div class="form-group">
-                        <label for="trInput">Türkçe Cümle</label>
-                        <input type="text" id="trInput" placeholder="Örn: Bugün hava çok güzel." autocomplete="off">
+                        <label for="sourceInput" id="sourceLabel">Türkçe Cümle</label>
+                        <input type="text" id="sourceInput" placeholder="Örn: Bugün hava çok güzel." autocomplete="off">
                     </div>
                     
                     <button id="translateBtn" class="btn btn-primary mb-4">Çevir 🔄</button>
                     
                     <div id="translationResult" class="hidden">
                         <div class="form-group">
-                            <label for="enInput">İngilizce Çeviri (Düzenleyebilirsiniz)</label>
-                            <input type="text" id="enInput" autocomplete="off">
+                            <label for="targetInput" id="targetLabel">İngilizce Çeviri (Düzenleyebilirsiniz)</label>
+                            <input type="text" id="targetInput" autocomplete="off">
                         </div>
                         <button id="saveSentenceBtn" class="btn btn-success">Kaydet ✅</button>
                         <button id="cancelTranslationBtn" class="btn btn-secondary">İptal</button>
@@ -626,12 +637,18 @@
         const loginLoading = document.getElementById('loginLoading');
         
         // Add Elements
-        const trInput = document.getElementById('trInput');
+        const sourceInput = document.getElementById('sourceInput');
         const translateBtn = document.getElementById('translateBtn');
         const translationResult = document.getElementById('translationResult');
-        const enInput = document.getElementById('enInput');
+        const targetInput = document.getElementById('targetInput');
         const saveSentenceBtn = document.getElementById('saveSentenceBtn');
         const cancelTranslationBtn = document.getElementById('cancelTranslationBtn');
+        const directionToggle = document.getElementById('directionToggle');
+        const sourceLabel = document.getElementById('sourceLabel');
+        const targetLabel = document.getElementById('targetLabel');
+        
+        // Translation direction: 'tr2en' or 'en2tr'
+        let translationDirection = 'tr2en';
         
         // Cards Elements
         const cardsList = document.getElementById('cardsList');
@@ -791,8 +808,36 @@
         });
 
         // --- 1. Add Sentence ---
+        
+        // Direction toggle
+        directionToggle.addEventListener('click', () => {
+            if (translationDirection === 'tr2en') {
+                translationDirection = 'en2tr';
+                document.getElementById('dirSourceFlag').textContent = '🇬🇧';
+                document.getElementById('dirSourceLang').textContent = 'İngilizce';
+                document.getElementById('dirTargetFlag').textContent = '🇹🇷';
+                document.getElementById('dirTargetLang').textContent = 'Türkçe';
+                sourceLabel.textContent = 'İngilizce Cümle';
+                sourceInput.placeholder = 'Ex: The weather is very nice today.';
+                targetLabel.textContent = 'Türkçe Çeviri (Düzenleyebilirsiniz)';
+            } else {
+                translationDirection = 'tr2en';
+                document.getElementById('dirSourceFlag').textContent = '🇹🇷';
+                document.getElementById('dirSourceLang').textContent = 'Türkçe';
+                document.getElementById('dirTargetFlag').textContent = '🇬🇧';
+                document.getElementById('dirTargetLang').textContent = 'İngilizce';
+                sourceLabel.textContent = 'Türkçe Cümle';
+                sourceInput.placeholder = 'Örn: Bugün hava çok güzel.';
+                targetLabel.textContent = 'İngilizce Çeviri (Düzenleyebilirsiniz)';
+            }
+            // Clear inputs when switching
+            sourceInput.value = '';
+            targetInput.value = '';
+            translationResult.classList.add('hidden');
+        });
+
         translateBtn.addEventListener('click', async () => {
-            const text = trInput.value.trim();
+            const text = sourceInput.value.trim();
             if (!text) {
                 showToast('Lütfen çevrilecek bir cümle yazın.', 'error');
                 return;
@@ -801,18 +846,20 @@
             translateBtn.disabled = true;
             translateBtn.textContent = 'Çevriliyor...';
             
+            const langPair = translationDirection === 'tr2en' ? 'tr|en' : 'en|tr';
+            
             try {
-                const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=tr|en`);
+                const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${langPair}`);
                 const data = await res.json();
                 if (data.responseData && data.responseData.translatedText) {
-                    enInput.value = data.responseData.translatedText;
+                    targetInput.value = data.responseData.translatedText;
                     translationResult.classList.remove('hidden');
                 } else {
                     throw new Error('Çeviri alınamadı');
                 }
             } catch (err) {
                 showToast('Çeviri sırasında bir hata oluştu. Lütfen manuel girin.', 'error');
-                enInput.value = '';
+                targetInput.value = '';
                 translationResult.classList.remove('hidden');
             } finally {
                 translateBtn.disabled = false;
@@ -822,18 +869,22 @@
 
         cancelTranslationBtn.addEventListener('click', () => {
             translationResult.classList.add('hidden');
-            trInput.value = '';
-            enInput.value = '';
+            sourceInput.value = '';
+            targetInput.value = '';
         });
 
         saveSentenceBtn.addEventListener('click', () => {
-            const tr = trInput.value.trim();
-            const en = enInput.value.trim();
+            const source = sourceInput.value.trim();
+            const target = targetInput.value.trim();
             
-            if (!tr || !en) {
+            if (!source || !target) {
                 showToast('Lütfen her iki dili de doldurun.', 'error');
                 return;
             }
+
+            // Assign to turkish/english based on direction
+            const tr = translationDirection === 'tr2en' ? source : target;
+            const en = translationDirection === 'tr2en' ? target : source;
 
             const newSentence = {
                 id: generateId(),
@@ -854,8 +905,8 @@
             showToast('Cümle başarıyla kaydedildi!', 'success');
             
             translationResult.classList.add('hidden');
-            trInput.value = '';
-            enInput.value = '';
+            sourceInput.value = '';
+            targetInput.value = '';
         });
 
         // --- 3. Cards & 4. Favorites & 6. Search ---
