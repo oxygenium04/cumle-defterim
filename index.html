@@ -428,7 +428,7 @@
     <div id="login-screen" class="view active">
         <h1>📝 Günlük Cümle Defterim</h1>
         <p>Cümlelerinizi kaydedin, çalışın ve bulutta senkronize edin.</p>
-        <button id="googleLoginBtn" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem;">
+        <button id="googleLoginBtn" class="btn btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; max-width: 320px; font-size: 1.05rem;">
             <svg viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                 <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.16v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
@@ -437,7 +437,10 @@
             </svg>
             Google ile Giriş Yap
         </button>
-        <div id="loginLoading" class="hidden mt-4 text-secondary">Giriş yapılıyor...</div>
+        <button id="guestLoginBtn" class="btn btn-secondary mt-4" style="width: 100%; max-width: 320px;">
+            Giriş Yapmadan Devam Et (Misafir)
+        </button>
+        <div id="loginLoading" class="hidden mt-4 text-secondary">Giriş yapılıyor, lütfen bekleyin...</div>
     </div>
 
     <!-- Main App Wrapper -->
@@ -595,7 +598,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithRedirect, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -611,10 +614,12 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
         const provider = new GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: 'select_account' });
 
         // --- State Management ---
         let sentences = [];
         let streakData = { lastDate: null, streak: 0 };
+        let isGuestMode = false;
         
         let filterOnlyFav = false;
         let searchQuery = "";
@@ -633,6 +638,7 @@
         const loginScreen = document.getElementById('login-screen');
         const appWrapper = document.getElementById('app-wrapper');
         const googleLoginBtn = document.getElementById('googleLoginBtn');
+        const guestLoginBtn = document.getElementById('guestLoginBtn');
         const logoutBtn = document.getElementById('logoutBtn');
         const loginLoading = document.getElementById('loginLoading');
         
@@ -718,22 +724,67 @@
         }
 
         // --- Auth Flow ---
-        googleLoginBtn.addEventListener('click', () => {
+
+        // Check for redirect result on startup (if user returned from a redirect)
+        getRedirectResult(auth).then((result) => {
+            if (result && result.user) {
+                showToast('Giriş başarılı!', 'success');
+            }
+        }).catch((error) => {
+            console.error("Redirect check error:", error);
+        });
+
+        // Google Login (Popup first, fallback to redirect if popup blocked)
+        googleLoginBtn.addEventListener('click', async () => {
             loginLoading.classList.remove('hidden');
             googleLoginBtn.disabled = true;
             try {
-                signInWithRedirect(auth, provider);
+                await signInWithPopup(auth, provider);
+                showToast('Giriş yapıldı!', 'success');
             } catch (error) {
-                console.error(error);
-                showToast('Giriş başlatılamadı: ' + error.message, 'error');
+                console.error("Login error:", error);
+                if (error.code === 'auth/popup-blocked') {
+                    showToast('Açılır pencere engellendi, yönlendiriliyor...', 'info');
+                    try {
+                        await signInWithRedirect(auth, provider);
+                        return;
+                    } catch (redirectErr) {
+                        showToast('Yönlendirme hatası: ' + redirectErr.message, 'error');
+                    }
+                } else if (error.code === 'auth/popup-closed-by-user') {
+                    showToast('Giriş penceresi kapatıldı.', 'info');
+                } else {
+                    showToast('Giriş yapılamadı: ' + error.message, 'error');
+                }
                 loginLoading.classList.add('hidden');
                 googleLoginBtn.disabled = false;
             }
         });
 
+        // Guest Login (local storage only, immediately unlocks app)
+        guestLoginBtn.addEventListener('click', () => {
+            isGuestMode = true;
+            sentences = JSON.parse(localStorage.getItem('dilOgrenme_sentences')) || [];
+            streakData = JSON.parse(localStorage.getItem('dilOgrenme_streak')) || { lastDate: null, streak: 0 };
+            renderCards();
+            updateStats();
+            loginScreen.classList.remove('active');
+            appWrapper.classList.remove('hidden');
+            logoutBtn.textContent = 'Giriş Ekranına Dön';
+            showToast('Misafir modu aktif (Cümleleriniz bu cihazda saklanır).', 'info');
+        });
+
         logoutBtn.addEventListener('click', async () => {
+            if (isGuestMode && !auth.currentUser) {
+                isGuestMode = false;
+                appWrapper.classList.add('hidden');
+                loginScreen.classList.add('active');
+                return;
+            }
             try {
                 await signOut(auth);
+                isGuestMode = false;
+                showToast('Çıkış yapıldı.', 'info');
             } catch (error) {
                 console.error(error);
                 showToast('Çıkış yapılamadı.', 'error');
@@ -742,7 +793,11 @@
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // Fetch user data
+                isGuestMode = false;
+                loginLoading.classList.add('hidden');
+                googleLoginBtn.disabled = false;
+
+                // Fetch user data from Firestore
                 try {
                     const userRef = doc(db, 'users', user.uid);
                     const docSnap = await getDoc(userRef);
@@ -751,13 +806,18 @@
                         sentences = data.sentences || [];
                         streakData = data.streakData || { lastDate: null, streak: 0 };
                     } else {
-                        // Attempt to load from localStorage if migrating
+                        // Load from localStorage if migrating
                         sentences = JSON.parse(localStorage.getItem('dilOgrenme_sentences')) || [];
                         streakData = JSON.parse(localStorage.getItem('dilOgrenme_streak')) || { lastDate: null, streak: 0 };
+                        if (sentences.length > 0) {
+                            await setDoc(userRef, { sentences, streakData });
+                        }
                     }
                 } catch (error) {
                     console.error("Error fetching user data:", error);
-                    showToast('Verileriniz alınırken hata oluştu.', 'error');
+                    showToast('Bulut verisi alınamadı, cihazdaki veriler açılıyor.', 'warning');
+                    sentences = JSON.parse(localStorage.getItem('dilOgrenme_sentences')) || [];
+                    streakData = JSON.parse(localStorage.getItem('dilOgrenme_streak')) || { lastDate: null, streak: 0 };
                 }
                 
                 renderCards();
@@ -765,7 +825,9 @@
                 
                 loginScreen.classList.remove('active');
                 appWrapper.classList.remove('hidden');
-            } else {
+                const displayName = user.displayName || user.email.split('@')[0];
+                logoutBtn.textContent = `Çıkış Yap (${displayName})`;
+            } else if (!isGuestMode) {
                 sentences = [];
                 streakData = { lastDate: null, streak: 0 };
                 appWrapper.classList.add('hidden');
